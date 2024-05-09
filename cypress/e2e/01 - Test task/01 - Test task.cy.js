@@ -2,33 +2,42 @@ describe('Test task', () => {
 
   it('Сhecking the balance and transactions', () => {
 
-    cy.visit('/angularJs-protractor/BankingProject/#/login');
-
-    cy.contains('Customer Login')
-      .click();
-
-    cy.get('#userSelect')
-      .select('Harry Potter');
-
-    cy.contains('Login')
-      .click();
-
-    cy.contains('Deposit')
-      .click();
-
     const currentDay = new Date().getDate();
     const number = 1;
     const currentDayPlusNumber = fib(currentDay + number);
 
-    cy.get('input')
-      .type(currentDayPlusNumber);
+    login();
+    depositReplenishment(currentDayPlusNumber);
+    withdrawalFunds(currentDayPlusNumber);
+    checkingBalance();
+    checkingTransactionsList(currentDayPlusNumber)
 
-    cy.get("[type='submit']")
+  });
+});
+
+function checkingTransactionsList(sum) {
+      cy.contains('Transactions')
       .click();
 
-    cy.contains('Deposit Successful')
-      .should('be.visible');
+    cy.get('tbody')
+      .children()
+      .each((el) => {
+        cy.get(el).within(() => {
+          cy.contains(sum)
+            .should('be.visible')
+        })
+      })
+}
 
+function checkingBalance() {
+    cy.contains('Balance').within(() => {
+      cy.get('strong:nth-child(2)')
+        .should('have.text', '0')
+        .wait(2000);
+    });
+}
+
+function withdrawalFunds(sum) {
     cy.contains('Withdrawl')
       .click();
 
@@ -36,34 +45,41 @@ describe('Test task', () => {
       .should('not.exist');
 
     cy.get('input')
-      .type(currentDayPlusNumber);
+      .type(sum);
 
     cy.get("[type='submit']")
       .click();
 
     cy.contains('Transaction successful')
       .should('be.visible');
+}
 
-    cy.contains('Balance').within(() => {
-      cy.get('strong:nth-child(2)')
-        .should('have.text', '0')
-        .wait(2000);
-    });
+function login() {
+  cy.visit('/angularJs-protractor/BankingProject/#/login');
 
-    cy.contains('Transactions')
+  cy.contains('Customer Login')
+    .click();
+
+  cy.get('#userSelect')
+    .select('Harry Potter');
+
+  cy.contains('Login')
+    .click();
+}
+
+function depositReplenishment(sum) {
+      cy.contains('Deposit')
       .click();
 
-    cy.get('tbody')
-      .children()
-      .each((el) => {
-        cy.get(el).within(() => {
-          cy.contains(currentDayPlusNumber)
-            .should('be.visible')
-        })
-      })
+    cy.get('input')
+      .type(sum);
 
-  });
-});
+    cy.get("[type='submit']")
+      .click();
+
+    cy.contains('Deposit Successful')
+      .should('be.visible');
+}
 
 function fib(n) {
   let a = 1;
